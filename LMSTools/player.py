@@ -4,8 +4,8 @@
 #
 # This set of tools was inspired by the PyLMS library.
 
-from tags import LMSTags as tags
-from utils import LMSUtils
+from .tags import LMSTags as tags
+from .utils import LMSUtils
 
 
 DETAILED_TAGS = [tags.ARTIST,
@@ -140,7 +140,7 @@ class LMSPlayer(LMSUtils):
         """Play/Pause Toggle"""
         self.request("pause")
 
-    def next(self):
+    def __next__(self):
         """Play next item in playlist"""
         self.request("playlist jump +1")
 

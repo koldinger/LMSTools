@@ -2,7 +2,7 @@ try:
     import urllib.parse
     urlmodule = urllib.parse
 except ImportError:
-    import urllib
+    import urllib.request, urllib.parse, urllib.error
     urlmodule = urllib
 
 

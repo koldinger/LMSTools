@@ -118,8 +118,8 @@ class SearchMenuItem(LMSMenuItemBase):
         :returns: command to generate search results
         """
         cmd = self.build_cmd(self.menuitem)
-        cmd = [u"{}".format(x).replace("__TAGGEDINPUT__", query)
-               if "__TAGGEDINPUT__" in u"{}".format(x) else x for x in cmd]
+        cmd = ["{}".format(x).replace("__TAGGEDINPUT__", query)
+               if "__TAGGEDINPUT__" in "{}".format(x) else x for x in cmd]
         return cmd
 
     @property

@@ -80,7 +80,7 @@ Or by passing events as a list
 
 """
 from threading import Thread
-from telnetlib import IAC, NOP, Telnet
+from telnetlib3.telnetlib import IAC, NOP, Telnet
 import socket
 from time import sleep
 
@@ -253,16 +253,16 @@ class LMSCallbackServer(Thread):
             import urllib.parse
             return urllib.parse.quote(text, encoding=self.charset)
         except ImportError:
-            import urllib
-            return urllib.quote(text)
+            import urllib.request, urllib.parse, urllib.error
+            return urllib.parse.quote(text)
 
     def __unquote(self, text):
         try:
             import urllib.parse
             return urllib.parse.unquote(text, encoding=self.charset)
         except ImportError:
-            import urllib
-            return urllib.unquote(text)
+            import urllib.request, urllib.parse, urllib.error
+            return urllib.parse.unquote(text)
 
     def unquote(self, text):
         return self.__unquote(text)
