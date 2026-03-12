@@ -2,25 +2,28 @@
 Simple python class definitions for interacting with Logitech Media Server.
 This code uses the JSON interface.
 """
-import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.error
 import json
 
 from .player import LMSPlayer
 
+#from icecream import ic
 
 class LMSConnectionError(Exception):
     pass
 
 
-class LMSServer(object):
+class LMSServer:
     """
+    Class for Logitech Media Server.
+
+    Provides access via JSON interface. As the class uses the JSON interface, no active connections are maintained.
+
     :type host: str
     :param host: address of LMS server (default "localhost")
     :type port: int
     :param port: port for the web interface (default 9000)
 
-    Class for Logitech Media Server.
-    Provides access via JSON interface. As the class uses the JSON interface, no active connections are maintained.
 
     """
 
@@ -34,6 +37,8 @@ class LMSServer(object):
 
     def request(self, player="-", params=None):
         """
+        Perform a request to the server.
+
         :type player: (str)
         :param player: MAC address of a connected player. Alternatively, "-" can be used for server level requests.
         :type params: (str, list)
@@ -42,6 +47,7 @@ class LMSServer(object):
         """
         req = urllib.request.Request(self.url)
         req.add_header('Content-Type', 'application/json')
+
 
         if type(params) == str:
             params = params.split()
@@ -53,22 +59,23 @@ class LMSServer(object):
                 "params": cmd}
 
         try:
-            response = urllib.request.urlopen(req, json.dumps(data))
+            response = urllib.request.urlopen(req, bytes(json.dumps(data), "utf8"))
             self.id += 1
             return json.loads(response.read())["result"]
 
         except urllib.error.URLError:
             raise LMSConnectionError("Could not connect to server.")
 
-        except:
+        except Exception as e:
             return None
 
     def get_players(self):
         """
+        Return a list of currently connected Squeezeplayers.
+
         :rtype: list
         :returns: list of LMSPlayer instances
 
-        Return a list of currently connected Squeezeplayers.
         ::
 
             >>>server.get_players()
@@ -86,6 +93,8 @@ class LMSServer(object):
 
     def get_player_count(self):
         """
+        Get the number of players.
+
         :rtype: int
         :returns: number of connected players
 
