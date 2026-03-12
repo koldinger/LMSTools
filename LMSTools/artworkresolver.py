@@ -18,7 +18,7 @@ class LMSArtworkResolver(object):
         self.port = port
 
         # Set up the template for local artwork
-        base = "http://{host}:{port}".format(host=self.host, port=self.port)
+        base = f"http://{self.host}:{self.port}"
         self.localart = base + "/music/{coverid}/cover_{h}x{w}_p.png"
 
         self.default = self.localart
@@ -31,12 +31,10 @@ class LMSArtworkResolver(object):
 
         # If there is, build the link.
         if art:
-
             return track.get("artwork_url")
 
         # If not, return the fallback image
-        else:
-            return self.default.format(coverid=0, h=h, w=w)
+        return self.default.format(coverid=0, h=h, w=w)
 
     def __getLocalURL(self, track, size):
         # Check if local cover art is available
@@ -46,16 +44,10 @@ class LMSArtworkResolver(object):
 
         # If so, build the link
         if coverart:
-
-            return self.localart.format(h=h,
-                                        w=w,
-                                        coverid=track["coverid"])
+            return self.localart.format(h=h, w=w, coverid=track["coverid"])
 
         # If not, return the fallback image
-        else:
-            return self.default.format(h=h,
-                                        w=w,
-                                        coverid=0)
+        return self.default.format(h=h, w=w, coverid=0)
 
     def getURL(self, track, size=(500, 500)):
         """
@@ -69,18 +61,16 @@ class LMSArtworkResolver(object):
         :param size: optional parameter which can be used when creating links \
         for local images. Default (500, 500).
         """
-
         # List of required keys
         required = ["remote", "coverart"]
 
         # Check that we've received the right type of data
-        if type(track) != dict:
+        if type(track) is not dict:
             raise TypeError("track should be a dict")
 
         # Check if all the keys are present
         if not set(required) < set(track.keys()):
-            raise KeyError("track should have 'remote' and"
-                           " 'coverart' keys")
+            raise KeyError("track should have 'remote' and 'coverart' keys")
 
         # Check the flags for local and remote art
         track["coverart"] = int(track["coverart"])
@@ -91,5 +81,4 @@ class LMSArtworkResolver(object):
             return self.__getRemoteURL(track, size)
 
         # or it's a local file, so let's get the link
-        else:
-            return self.__getLocalURL(track, size)
+        return self.__getLocalURL(track, size)

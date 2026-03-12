@@ -79,11 +79,16 @@ Or by passing events as a list
     squeeze.start()
 
 """
+
 from threading import Thread
 from telnetlib3.telnetlib import IAC, NOP, Telnet
 import socket
 from time import sleep
+import urllib.parse
 
+from icecream import ic
+
+ic.configureOutput(includeContext=True)
 
 class CallbackServerError(Exception):
     pass
@@ -201,33 +206,32 @@ class LMSCallbackServer(Thread):
         """
         Telnet Connect
         """
+        ic()
         self.telnet = Telnet(self.hostname, self.port, timeout=2)
 
     def __login(self):
-        """
-        Login
-        """
-        result = self.request("login %s %s" % (self.username, self.password))
+        """ Login """
+        result = self.__request("login %s %s" % (self.username, self.password))
         self.logged_in = (result == "******")
         if not self.logged_in:
-            raise CallbackServerError("Unable to login. Check username and "
-                                      "password.")
+            raise CallbackServerError("Unable to login. Check username and password.")
 
     def __request(self, command_string, preserve_encoding=False):
-        """
-        Send a request to the Telnet interface.
-        """
+        """ Send a request to the Telnet interface. """
+
         # self.logger.debug("Telnet: %s" % (command_string))
+        ic(command_string)
         self.telnet.write(self.__encode(command_string + "\n"))
         # Include a timeout to stop unnecessary blocking
         response = self.telnet.read_until(self.__encode("\n"),timeout=1)[:-1]
+        ic(type(response), response)
+
         if not preserve_encoding:
-            response = self.__decode(self.__unquote(response))
+            response = self.__unquote(response)
         else:
             command_string_quoted = \
-                command_string[0:command_string.find(':')] + \
-                command_string[command_string.find(':'):].replace(
-                    ':', self.__quote(':'))
+                command_string[0:command_string.find(":")] + \
+                command_string[command_string.find(":"):].replace(":", self.__quote(":"))
         start = command_string.split(" ")[0]
         if start in ["songinfo", "trackstat", "albums", "songs", "artists",
                      "rescan", "rescanprogress"]:
@@ -250,18 +254,14 @@ class LMSCallbackServer(Thread):
 
     def __quote(self, text):
         try:
-            import urllib.parse
             return urllib.parse.quote(text, encoding=self.charset)
         except ImportError:
-            import urllib.request, urllib.parse, urllib.error
             return urllib.parse.quote(text)
 
     def __unquote(self, text):
         try:
-            import urllib.parse
             return urllib.parse.unquote(text, encoding=self.charset)
         except ImportError:
-            import urllib.request, urllib.parse, urllib.error
             return urllib.parse.unquote(text)
 
     def unquote(self, text):
@@ -270,6 +270,9 @@ class LMSCallbackServer(Thread):
     def set_server(self, hostname, port=9090, username="", password="",
                    parent_class=None):
         """
+        Provide details of the server if not provided when the class is
+        initialised (e.g. if you are using decorators to define callbacks).
+
         :type hostname: str
         :param hostname: (required) ip address/name of the server (excluding "http://" prefix)
         :type port: int
@@ -280,10 +283,6 @@ class LMSCallbackServer(Thread):
         :param password: (optional) password for access on telnet port
         :type parent_class: object
         :param parent_class: (optional) reference to a class instance. Required where decorators have been used on class methods prior to initialising the class.
-
-        Provide details of the server if not provided when the class is
-        initialised (e.g. if you are using decorators to define callbacks).
-
         """
         if self.is_connected:
             raise CallbackServerError("Server already logged in.")
@@ -301,6 +300,7 @@ class LMSCallbackServer(Thread):
         self.cb_class = parent
 
     def event(self, eventname):
+        ic(self, eventname)
 
         def decorator(func):
             self.add_callback(eventname, func)
@@ -349,11 +349,14 @@ class LMSCallbackServer(Thread):
         del self.callbacks[event]
 
     def __check_event(self, event):
-        """Checks whether any of the requested notification types match the
-           received notification. If there's a match, we run the requested
-           callback function passing the notification as the only parameter.
+        """
+        Checks whether any of the requested notification types match the
+        received notification.
+
+        If there's a match, we run the requested callback function passing the notification as the only parameter.
         """
         for cb in self.callbacks:
+            ic(cb, event)
             if cb in event:
                 callback = self.callbacks[cb]
                 if self.cb_class:
@@ -363,9 +366,10 @@ class LMSCallbackServer(Thread):
                 break
 
     def __check_connection(self):
-        """Method to check whether we can still connect to the server.
+        """
+        Method to check whether we can still connect to the server.
 
-           Sets the flag to stop the server if no collection is available.
+        Sets the flag to stop the server if no collection is available.
         """
         # Create a socket object
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -389,25 +393,31 @@ class LMSCallbackServer(Thread):
         self.abort = True
 
     def run(self):
-
+        ic(self.notifications)
         while not self.abort:
             try:
+                ic()
                 self.__connect()
                 self.connected = True
-                self.__check_event(CallbackServer.SERVER_CONNECT)
+                self.__check_event(LMSCallbackServer.SERVER_CONNECT)
                 break
-            except CallbackServerError:
+            except CallbackServerError as e:
+                ic(e)
                 raise
-            except:
+            except Exception as e:
+                ic(e)
                 sleep(5)
 
         if self.abort:
             return
 
+        ic()
+
         # If we've already defined callbacks then we know which events we're
         # listening out for
         if self.notifications:
             nots = ",".join(self.notifications)
+            ic(nots)
             self.__request("subscribe {}".format(nots))
 
         # If not, let's just listen for everything.
@@ -422,7 +432,7 @@ class LMSCallbackServer(Thread):
                 # We've got a notification, so let's see if it's one we're
                 # watching.
                 if data:
-                    self.__check_event(data)
+                    self.__check_event(self.__unquote(data))
 
             # Server is unavailable so exit gracefully
             except EOFError:
