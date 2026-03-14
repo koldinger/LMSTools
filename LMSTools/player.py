@@ -20,8 +20,7 @@ DETAILED_TAGS = [tags.ARTIST,
 
 class LMSPlayer(LMSUtils):
     """
-    The LMSPlayer class represents an individual squeeze player connected to
-    your Logitech Media Server.
+    The LMSPlayer class represents an individual squeeze player connected to your Logitech Media Server.
 
     Instances of this class are generated from the LMSServer object and it is
     not expected that you would create an instance directly. However, it is

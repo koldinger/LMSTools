@@ -2,7 +2,8 @@
 Simple python class definitions for interacting with Logitech Media Server.
 This code uses the JSON interface.
 """
-import urllib.request, urllib.error
+import urllib.request
+import urllib.error
 import json
 
 from .player import LMSPlayer
@@ -32,8 +33,8 @@ class LMSServer:
         self.port = port
         self._version = None
         self.id = 1
-        self.web = "http://{h}:{p}/".format(h=host, p=port)
-        self.url = "http://{h}:{p}/jsonrpc.js".format(h=host, p=port)
+        self.web = f"http://{host}:{port}/"
+        self.url = f"http://{host}:{port}/jsonrpc.js"
 
     def request(self, player="-", params=None):
         """
@@ -46,7 +47,7 @@ class LMSServer:
 
         """
         req = urllib.request.Request(self.url)
-        req.add_header('Content-Type', 'application/json')
+        req.add_header("Content-Type", "application/json")
 
 
         if type(params) == str:
@@ -66,7 +67,7 @@ class LMSServer:
         except urllib.error.URLError:
             raise LMSConnectionError("Could not connect to server.")
 
-        except Exception as e:
+        except Exception:
             return None
 
     def get_players(self):
@@ -204,7 +205,6 @@ class LMSServer:
             True
 
         """
-
         try:
             self.request(params="ping")
             return True
@@ -226,12 +226,12 @@ class LMSServer:
 
         return self._version
 
-    def rescan(self, mode='fast'):
+    def rescan(self, mode="fast"):
         """
+        Trigger rescan of the media library.
+
         :type mode: str
         :param mode: Mode can be 'fast' for update changes on library, 'full' for complete library scan and 'playlists' for playlists scan only
-
-        Trigger rescan of the media library.
         """
         is_scanning = True
         try:
@@ -240,18 +240,19 @@ class LMSServer:
             pass
 
         if not is_scanning:
-            if mode == 'fast':
+            if mode == "fast":
                 return self.request(params="rescan")
-            elif mode == 'full':
+            if mode == "full":
                 return self.request(params="wipecache")
-            elif mode == 'playlists':
+            if mode == "playlists":
                 return self.request(params="rescan playlists")
-        else:
-            return ""
+        return ""
 
     @property
     def rescanprogress(self):
         """
+        Get the progress of the current rescan.
+
         :attr rescanprogress: current rescan progress
         """
         return self.request(params="rescanprogress")["_rescan"]
