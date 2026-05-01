@@ -106,7 +106,9 @@ class LMSServer:
 
         """
         try:
-            count = self.request(params="player count ?")["_count"]
+            # Get the count, and make sure it's an int.
+            # Bug in LMS, when they player count is 0, it returns a string '0', instead of int 0.
+            count = int(self.request(params="player count ?")["_count"])
         except:
             count = 0
 
@@ -194,10 +196,10 @@ class LMSServer:
 
     def ping(self):
         """
+        Method to test if server is active.
+
         :rtype: bool
         :returns: True if server is alive, False if server is unreachable
-
-        Method to test if server is active.
 
         ::
 
@@ -214,6 +216,8 @@ class LMSServer:
     @property
     def version(self):
         """
+        Get the version of the server.
+
         :attr version: Version number of server Software
 
         ::
