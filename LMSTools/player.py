@@ -120,47 +120,53 @@ class LMSPlayer(LMSUtils):
         return self.request(command).get(key)
 
     def play(self):
-        """Start playing the current item"""
+        """ Start playing the current item. """
         self.request("play")
 
     def stop(self):
-        """Stop the player"""
+        """ Stop the player. """
         self.request("stop")
 
     def pause(self):
-        """Pause the player. This does not unpause the player if already paused."""
+        """ Pause the player. This does not unpause the player if already paused. """
         self.request("pause 1")
 
     def unpause(self):
-        """Unpause the player."""
+        """ Unpause the player. """
         self.request("pause 0")
 
     def toggle(self):
-        """Play/Pause Toggle"""
+        """ Play/Pause Toggle. """
         self.request("pause")
 
     def __next__(self):
-        """Play next item in playlist"""
+        """ Play next item in playlist. """
         self.request("playlist jump +1")
 
+    def next(self):
+        self.__next__()
+
     def prev(self):
-        """Play previous item in playlist"""
+        """ Play previous item in playlist. """
         self.request("playlist jump -1")
 
     def mute(self):
-        """Mute player"""
+        """ Mute player. """
         self.muted = True
 
     def unmute(self):
-        """Unmute player"""
+        """ Unmute player. """
         self.muted = False
 
     def seek_to(self, seconds):
         """
+        Seek to a given position in the current track.
+
         :type seconds: int, float
         :param seconds: position (in seconds) that player should seek to
 
-        Move player to specified position in current playlist item"""
+        Move player to specified position in current playlist item
+        """
         try:
             seconds = float(seconds)
             self.request("time {}".format(seconds))
@@ -169,6 +175,8 @@ class LMSPlayer(LMSUtils):
 
     def forward(self, seconds=10):
         """
+        Skip forward N seconds.
+
         :type seconds: int, float
         :param seconds: number of seconds to jump forwards in current track.
 
@@ -182,6 +190,8 @@ class LMSPlayer(LMSUtils):
 
     def rewind(self, seconds=10):
         """
+        Rewind the current track N seconds.
+
         :type seconds: int, float
         :param seconds: number of seconds to jump backwards in current track.
 
@@ -211,7 +221,6 @@ class LMSPlayer(LMSUtils):
             >>>p.name = "New name"
             >>>p.name
             'New name'
-
         """
         if self._name is None:
             self._name = self.parse_request("name ?", "_value")
@@ -220,11 +229,9 @@ class LMSPlayer(LMSUtils):
 
     @name.setter
     def name(self, name):
-        """
-        Set the player name.
-        """
+        """ Set the player name. """
         try:
-            self.request("name {}".format(name))
+            self.request(f"name {name}")
             self._name = name
         except:
             pass
@@ -232,6 +239,8 @@ class LMSPlayer(LMSUtils):
     @property
     def model(self):
         """
+        Return the model of the player.
+
         :rtype: str, unicode
         :returns: model name of the current player.
         """
@@ -240,6 +249,8 @@ class LMSPlayer(LMSUtils):
     @property
     def mode(self):
         """
+        Return the current mode.  play, pause, stop, whatever.
+
         :rtype: str, unicode
         :returns: curent mode (e.g. "play", "pause")
         """
@@ -248,7 +259,7 @@ class LMSPlayer(LMSUtils):
     @property
     def muted(self):
         """
-        Muting
+        Current muting status.
 
         :getter: retrieve current muting status
         :rtype: bool
@@ -273,6 +284,8 @@ class LMSPlayer(LMSUtils):
     @property
     def wifi_signal_strength(self):
         """
+        Current WiFi signal strength.
+
         :rtype: int
         :returns: Wifi signal strength
         """
@@ -281,6 +294,8 @@ class LMSPlayer(LMSUtils):
     @property
     def track_artist(self):
         """
+        Artist of the currently playing track.
+
         :rtype: unicode, str
         :returns: name of artist for current playlist item
 
@@ -295,6 +310,8 @@ class LMSPlayer(LMSUtils):
     @property
     def track_album(self):
         """
+        Album containing the currently playing track.
+
         :rtype: unicode, str
         :returns: name of album for current playlist item
 
@@ -309,6 +326,8 @@ class LMSPlayer(LMSUtils):
     @property
     def track_title(self):
         """
+        Title of the currently playing track.
+
         :rtype: unicode, str
         :returns: name of track for current playlist item
 
@@ -323,6 +342,8 @@ class LMSPlayer(LMSUtils):
     @property
     def track_duration(self):
         """
+        Duration of the currently playing track.
+
         :rtype: float
         :returns: duration of track in seconds
 
@@ -337,6 +358,8 @@ class LMSPlayer(LMSUtils):
     @property
     def track_elapsed_and_duration(self):
         """
+        Current play position, and the duration of the currently playing track.
+
         :rtype: tuple (float, float)
         :returns: tuple of elapsed time and track duration
 
@@ -357,6 +380,8 @@ class LMSPlayer(LMSUtils):
 
     def percentage_elapsed(self, upper=100):
         """
+        Percentage of the current track that's been played.
+
         :type upper: float, int
         :param upper: (optional) scale - returned value is between 0 and upper (default 100)
         :rtype: float
@@ -379,6 +404,8 @@ class LMSPlayer(LMSUtils):
     @property
     def time_elapsed(self):
         """
+        Time elapsed in current track.
+
         :rtype: float
         :returns: elapsed time in seconds. Returns 0.0 if an exception is encountered.
 
@@ -393,6 +420,8 @@ class LMSPlayer(LMSUtils):
     @property
     def time_remaining(self):
         """
+        Time remaining in current track.
+
         :rtype: float
         :returns: remaining time in seconds. Returns 0.0 if an exception is encountered.
 
@@ -405,9 +434,10 @@ class LMSPlayer(LMSUtils):
     @property
     def track_count(self):
         """
+        Number of tracks in the current playlist.
+
         :rtype: int
         :returns: number of tracks in playlist
-
         """
         try:
             return int(self.parse_request("playlist tracks ?", "_tracks"))
@@ -416,6 +446,8 @@ class LMSPlayer(LMSUtils):
 
     def playlist_play_index(self, index):
         """
+        Play the track at the position N in the playlist.
+
         :type index: int
         :param index: index of playlist track to play (zero-based index)
 
@@ -425,6 +457,8 @@ class LMSPlayer(LMSUtils):
     @property
     def playlist_position(self):
         """
+        The current track location in the playlist.
+
         :rtype:     int
         :returns: position of current track in playlist
 
@@ -436,6 +470,8 @@ class LMSPlayer(LMSUtils):
 
     def playlist_get_current_detail(self, amount=None, taglist=None):
         """
+        Get details of the current playlist.
+
         :type amount: int
         :param amount: number of tracks to query
         :type taglist: list
@@ -466,7 +502,6 @@ class LMSPlayer(LMSUtils):
               u'id': u'-161090728',
               u'playlist index': 7,
               u'title': u'Lightning Bolt'}]
-
         """
         if taglist is None:
             taglist = DETAILED_TAGS
